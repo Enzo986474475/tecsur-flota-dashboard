@@ -1,0 +1,22 @@
+rutas:
+  origen_recorridos: "C:/Users/Enzo Morote/TECSUR S.A/Gestión Flota EV - Enzo - Documentos/recorridos_maestro.xlsx"
+  hoja_recorridos: 0   # o "Rutas" / "Maestro" si corresponde
+
+salida:
+  carpeta_pdf: "output/pdf"
+  carpeta_figs: "output/figs"
+  carpeta_logs: "output/logs"
+
+parametros:
+  excluir_placas:
+    - "SUV BYD (Gerencia)"
+    - "Sedan EV BYD (Gerencia)"
+  umbral_sin_mov_km: 4
+  columna_tipo: "Tipo"
+  valor_ev: "EV"
+  valor_ci: "CI"
+
+    # NUEVO: nombres de columnas reales en tu maestro
+  col_fecha: "Fecha"
+  col_placa: "Placa"
+  col_km: "Kilometros"

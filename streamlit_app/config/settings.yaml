@@ -1,0 +1,34 @@
+app:
+  name: "Tecsur · Flota EV"
+  version: "0.1"
+
+branding:
+  logo_path: "assets/logo_tecsur.png"
+  page_icon: "🚗"
+
+thresholds:
+  soat_warning_days: 30
+  sat_warning_days: 15        # ← nuevo (puedes cambiarlo)
+  itv_warning_days: 30        # ← nuevo
+
+
+data:                         # lo que lee la app (copias locales)
+  recorridos_maestro: "data/recorridos_maestro.xlsx"
+  soats_src: "data/Ingresos_Egresos_Flota.xlsx"
+  combustible_ev: "data/Combustible_EV.xlsx"
+
+
+
+sharepoint:
+  base: "https://tecsurpe.sharepoint.com"
+  library_path: "/sites/GestinFlotaEV-Enzo/Documentos%20compartidos"
+  soat_folder: "/2.-Documentos/Control Documentario/SOAT"
+  soat_folder_url: "https://tecsurpe.sharepoint.com/sites/GestinFlotaEV-Enzo/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2FGestinFlotaEV%2DEnzo%2FDocumentos%20compartidos%2F2%2E%2DDocumentos%2FControl%20Documentario%2FSOAT&p=true&ga=1"
+  sat_folder_url: "https://tecsurpe.sharepoint.com/sites/GestinFlotaEV-Enzo/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2FGestinFlotaEV%2DEnzo%2FDocumentos%20compartidos%2F2%2E%2DDocumentos%2FControl%20Documentario%2FSAT%2FPagos%20Impuesto%5FFlota&p=true&ga=1"   # ← nuevo
+  itv_folder_url: "https://tecsurpe.sharepoint.com/sites/GestinFlotaEV-Enzo/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2FGestinFlotaEV%2DEnzo%2FDocumentos%20compartidos%2F2%2E%2DDocumentos%2FControl%20Documentario%2FITV%2F01%20ITV&p=true&ga=1"               # ← nuevo
+
+# Orígenes (OneDrive / red). Se copiarán a 'data/' si hay versión más nueva.
+sources:
+  recorridos_maestro: "C:\\Users\\Enzo Morote\\TECSUR S.A\\Gestión Flota EV - Enzo - Documentos\\recorridos_maestro.xlsx"
+  soats_src: "C:\\Users\\Enzo Morote\\TECSUR S.A\\Gestión Flota EV - Enzo - Documentos\\Ingresos_Egresos_Flota.xlsx"   # ← tu archivo
+  combustible_ev: "C:\\Users\\Enzo Morote\\TECSUR S.A\\Gestión Flota EV - Enzo - Documentos\\Combustible_EV.xlsx"
