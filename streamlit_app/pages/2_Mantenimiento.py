@@ -1,5 +1,6 @@
 # streamlit_app/pages/2_Mantenimiento.py
 from __future__ import annotations
+from lib.io import load
 
 from datetime import date
 from pathlib import Path
@@ -9,6 +10,7 @@ import re
 import pandas as pd
 import numpy as np
 import streamlit as st
+
 
 # ============================
 # Configuración de página (consistente con el resto)
@@ -58,13 +60,21 @@ PATH_MANT  = BASE_DIR / "Mantenimientos.xlsx"
 PATH_DISP  = BASE_DIR / "Disponibilidad Mecánica.xlsx"   # reservado para futuros cuadros
 PATH_FLOTA = BASE_DIR / "Control-de-Flota-Vehicular-Tecsur 12.xlsx"
 
+import os
+
+# Fuentes desde secretos (si no hay secreto, cae a la ruta local)
+FLOTA_SRC = load(os.getenv("URL_FLOTA", str(PATH_FLOTA)))
+MANT_SRC  = load(os.getenv("URL_MANT",  str(PATH_MANT)))
+DISP_SRC  = load(os.getenv("URL_DISP",  str(PATH_DISP)))  # reservado para futuros cuadros
+
 # ============================
 # Helpers
 # ============================
 @st.cache_data(show_spinner=False)
 def _read_flota(path: Path) -> pd.DataFrame:
     """Lee Flota con encabezado en fila 8 y datos desde col C. Devuelve columnas clave."""
-    df = pd.read_excel(path, sheet_name=0, header=7)
+   
+    df = _df_or_path_to_df(path, sheet_name="Flota", header=7)
     cols = {c: re.sub(r"\s+", " ", str(c)).strip() for c in df.columns}
     df = df.rename(columns=cols)
 
@@ -86,7 +96,8 @@ def _read_flota(path: Path) -> pd.DataFrame:
 
 @st.cache_data(show_spinner=False)
 def _read_mantenimientos(path: Path) -> pd.DataFrame:
-    df = pd.read_excel(path, sheet_name=0)
+
+    df = _df_or_path_to_df(path, sheet_name=0)
     cols = {c: re.sub(r"\s+", " ", str(c)).strip() for c in df.columns}
     df = df.rename(columns=cols)
 
@@ -170,6 +181,9 @@ def _teoricas_horas(anio: int, mes: int) -> float:
     dias = calendar.monthrange(int(anio), int(mes))[1]
     return 24.0 * dias
 
+def _df_or_path_to_df(x, **kwargs):
+    return x if isinstance(x, pd.DataFrame) else pd.read_excel(x, **kwargs)
+
 # ============================
 # Tabs principales
 # ============================
@@ -191,8 +205,12 @@ with TAB_RESUMEN:
             st.cache_data.clear()          # limpia cache de DataFrames
             st.rerun()                     # vuelve a ejecutar la página
 
-    df_mant_all  = _read_mantenimientos(PATH_MANT)
-    df_flota_all = _read_flota(PATH_FLOTA)
+    #df_mant_all  = _read_mantenimientos(PATH_MANT)
+    #df_flota_all = _read_flota(PATH_FLOTA)
+
+    # ahora:
+    df_mant_all  = _read_mantenimientos(MANT_SRC)
+    df_flota_all = _read_flota(FLOTA_SRC)
 
     col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([1,1,2,2,2])
     with col_f1:
@@ -503,8 +521,11 @@ with TAB_RESUMEN:
     st.caption("En todos los cálculos se consideran únicamente OTs **cerradas** (Ingresos al Taller = 1).")
 
     # Reutilizamos data ya cargada arriba
-    df_mant_all  = _read_mantenimientos(PATH_MANT)
-    df_flota_all = _read_flota(PATH_FLOTA)
+    #df_mant_all  = _read_mantenimientos(PATH_MANT)
+    #df_flota_all = _read_flota(PATH_FLOTA)
+
+    df_mant_all  = _read_mantenimientos(MANT_SRC)
+    df_flota_all = _read_flota(FLOTA_SRC)
 
     # --- Filtros (rápidos) ---
     col_a, col_b, col_c, col_c2, col_d, col_e = st.columns([1,1,2,2,2,2])
@@ -871,11 +892,17 @@ with TAB_RESUMEN:
     PATH_MP_INTERVALOS = BASE_DIR / "mp_intervalos.xlsx"
     PATH_RECORRIDOS    = BASE_DIR / "recorridos_maestro.xlsx"
 
+    # (debajo de donde defines PATH_MP_INTERVALOS y PATH_RECORRIDOS)
+    MP_SRC  = load(os.getenv("URL_MP",       str(PATH_MP_INTERVALOS)))
+    REC_SRC = load(os.getenv("URL_RECORR",   str(PATH_RECORRIDOS)))
+
+
     @st.cache_data(show_spinner=False)
     def _read_flota_kms(path: Path) -> pd.DataFrame:
         """Flota (pestaña 'Flota', header fila 8). Devuelve placa, familia, motorización,
         Km Actual y Fecha último Km."""
-        df = pd.read_excel(path, sheet_name="Flota", header=7)
+     
+        df = _df_or_path_to_df(path, sheet_name="Flota", header=7)
         cols = {c: re.sub(r"\s+", " ", str(c)).strip() for c in df.columns}
         df = df.rename(columns=cols)
 
@@ -902,7 +929,9 @@ with TAB_RESUMEN:
     @st.cache_data(show_spinner=False)
     def _read_mp_intervalos(path: Path) -> pd.DataFrame:
         """mp_intervalos (pestaña 'Data Flota'). Usa 'Placa Vehiculo' y 'Próximo Mantto' (kilómetros)."""
-        df = pd.read_excel(path, sheet_name="Data Flota")
+       
+        df = _df_or_path_to_df(path, sheet_name="Data Flota")
+
         cols = {c: re.sub(r"\s+", " ", str(c)).strip() for c in df.columns}
         df = df.rename(columns=cols)
 
@@ -919,7 +948,9 @@ with TAB_RESUMEN:
     @st.cache_data(show_spinner=False)
     def _read_recorridos(path: Path) -> pd.DataFrame:
         """recorridos_maestro (única pestaña). Usa 'Vehículo', 'Fecha', 'Distancia (km)'."""
-        df = pd.read_excel(path, sheet_name=0)
+       
+        df = _df_or_path_to_df(path, sheet_name=0)
+
         cols = {c: re.sub(r"\s+", " ", str(c)).strip() for c in df.columns}
         df = df.rename(columns=cols)
 
@@ -989,8 +1020,8 @@ with TAB_RESUMEN:
         return out.sort_values(["Familia", "Placa Vehiculo"]).reset_index(drop=True)
 
     # Construir dataframe para la UI
-    tabla_mp = _build_tabla_mp(PATH_FLOTA, PATH_MP_INTERVALOS, PATH_RECORRIDOS)
-
+    #tabla_mp = _build_tabla_mp(PATH_FLOTA, PATH_MP_INTERVALOS, PATH_RECORRIDOS)
+    tabla_mp = _build_tabla_mp(FLOTA_SRC, MP_SRC, REC_SRC)
     # ============================
     # UI · Próximos mantenimientos (por placa)
     # ============================
@@ -998,7 +1029,8 @@ with TAB_RESUMEN:
     st.caption("Cruza *Flota* (Km actual / Fecha último Km) + *recorridos_maestro* (distancia diaria) + *mp_intervalos* (Próximo Mantto).")
 
     # Leemos recorridos una sola vez (cacheado)
-    recorridos_all = _read_recorridos(PATH_RECORRIDOS)
+    #recorridos_all = _read_recorridos(PATH_RECORRIDOS)
+    recorridos_all = _read_recorridos(REC_SRC)
 
     # Filtros (Año + Mes numérico)
     col_fam, col_buscar, col_mot, col_anio, col_mes = st.columns([2, 3, 2, 1.2, 1.2])
